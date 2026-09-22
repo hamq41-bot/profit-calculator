@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080c1a">
+<meta name="color-scheme" content="dark">
+<title>حاسبة وصافي أرباح المتاجر والإعلانات الممولة في العراق</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: { fontFamily: { sans: ['Tajawal', 'system-ui', 'sans-serif'] } } }
+  };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<style>
+  :root {
+    --bg: #080c1a;
+    --ink: #e8ecf8;
+    --muted: #8b95b5;
+    --glass: rgba(255, 255, 255, 0.045);
+    --glass-border: rgba(255, 255, 255, 0.10);
+
+    --cogs: #f5b94a;
+    --ads: #7f9bff;
+    --ship: #4dd6e0;
+    --profit: #2ee6a6;
+    --loss: #ff3355;
+    --pack: #c27bff;
+    --comm: #ff7eb6;
+    --damage: #ff9f43;
+  }
+
+  * { -webkit-tap-highlight-color: transparent; }
+  [hidden] { display: none !important; }
+
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Tajawal', system-ui, sans-serif;
+    font-weight: 500;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  .bg-orbs {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(620px 420px at 88% -4%, rgba(127, 155, 255, 0.17), transparent 62%),
+      radial-gradient(520px 400px at 4% 32%, rgba(77, 214, 224, 0.10), transparent 62%),
+      radial-gradient(540px 440px at 62% 106%, rgba(46, 230, 166, 0.09), transparent 62%),
+      var(--bg);
+  }
+
+  .num { unicode-bidi: isolate; direction: ltr; display: inline-block; font-variant-numeric: tabular-nums; }
+  .unit { font-size: 0.85em; font-weight: 700; color: var(--muted); }
+
+  /* ---------- Glass ---------- */
+  .glass {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    border-radius: 1.35rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 24px 48px -28px rgba(0, 0, 0, 0.7);
+  }
+  .card { padding: 1.25rem; }
+  @media (min-width: 640px) { .card { padding: 1.5rem; } }
+
+  .card-ads   { --accent: #7f9bff; --accent-rgb: 127, 155, 255; }
+  .card-goods { --accent: #f5b94a; --accent-rgb: 245, 185, 74; }
+  .card-ship  { --accent: #4dd6e0; --accent-rgb: 77, 214, 224; }
+  .card-store { --accent: #5eead4; --accent-rgb: 94, 234, 212; }
+
+  .card-head { display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1.15rem; }
+  .chip-ic {
+    flex: none; width: 2.6rem; height: 2.6rem; border-radius: 0.85rem;
+    display: grid; place-items: center;
+    color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.13);
+    border: 1px solid rgba(var(--accent-rgb), 0.35);
+    box-shadow: 0 0 22px -6px rgba(var(--accent-rgb), 0.65);
+  }
+  .card-title { margin: 0; font-size: 1.1rem; font-weight: 800; line-height: 1.4; }
+  .card-sub { margin: 0; font-size: 0.85rem; color: var(--muted); line-height: 1.5; }
+
+  .i { width: 1.25rem; height: 1.25rem; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+  /* ---------- Fields ---------- */
+  .fields { display: grid; gap: 1rem; }
+  .lbl { display: block; margin-bottom: 0.4rem; font-size: 0.95rem; font-weight: 700; color: rgba(232, 236, 248, 0.92); }
+  .field { position: relative; }
+  .inp {
+    width: 100%; height: 3.25rem;
+    padding: 0 1rem 0 4.4rem;
+    border-radius: 0.9rem;
+    background: rgba(3, 6, 18, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    color: var(--ink);
+    font-family: 'Tajawal', system-ui, sans-serif;
+    font-size: 1.15rem; font-weight: 700;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .inp::placeholder { color: rgba(139, 149, 181, 0.5); font-weight: 500; }
+  .inp:focus {
+    outline: none;
+    border-color: rgba(var(--accent-rgb), 0.85);
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.18), 0 0 26px -6px rgba(var(--accent-rgb), 0.55);
+  }
+  .unit-chip {
+    position: absolute; left: 0.95rem; top: 50%; transform: translateY(-50%);
+    font-size: 0.82rem; font-weight: 700; color: var(--muted); pointer-events: none;
+  }
+  .hint { margin: 0.4rem 0 0; font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+
+  .live {
+    margin: 1rem 0 0; padding: 0.6rem 0.85rem; border-radius: 0.8rem;
+    font-size: 0.9rem; line-height: 1.6;
+    background: rgba(var(--accent-rgb), 0.10);
+    border: 1px solid rgba(var(--accent-rgb), 0.22);
+  }
+  .live strong { font-weight: 800; }
+  .live.warn { background: rgba(255, 51, 85, 0.12); border-color: rgba(255, 51, 85, 0.35); color: #ffc2cc; }
+  .live.bad strong { color: #ff8095; }
+
+  /* ---------- Buttons ---------- */
+  .actions { display: flex; gap: 0.75rem; }
+  .btn {
+    flex: 1; height: 3.25rem; border-radius: 0.9rem;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    font-family: 'Tajawal', system-ui, sans-serif; font-size: 1rem; font-weight: 800;
+    cursor: pointer; transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+  .btn-primary { background: var(--ink); color: #0a0f21; border: 1px solid var(--ink); }
+  .btn-primary:hover { background: #fff; }
+  .btn-ghost { background: rgba(255, 255, 255, 0.05); color: var(--ink); border: 1px solid rgba(255, 255, 255, 0.16); }
+  .btn-ghost:hover { background: rgba(255, 255, 255, 0.09); }
+
+  /* ---------- Extra costs card ---------- */
+  .card-extra { --accent: #c27bff; --accent-rgb: 194, 123, 255; }
+  .tag { margin-inline-start: 0.35rem; font-size: 0.78rem; font-weight: 700; color: var(--muted); }
+  .seg {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem; padding: 0.25rem;
+    border-radius: 0.9rem; background: rgba(3, 6, 18, 0.5); border: 1px solid rgba(255, 255, 255, 0.10);
+  }
+  .seg button {
+    height: 2.5rem; border-radius: 0.65rem; border: 0; background: transparent; color: var(--muted);
+    font-family: 'Tajawal', system-ui, sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .seg button[aria-checked="true"] {
+    background: rgba(var(--accent-rgb), 0.18); color: var(--ink);
+    box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.55);
+  }
+  .seg button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+  /* ---------- Store branding ---------- */
+  .inp-plain { padding: 0 1rem; }
+  .logo-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .logo-preview {
+    width: 4rem; height: 4rem; border-radius: 0.85rem; flex: none;
+    background: rgba(3, 6, 18, 0.5); border: 1px dashed rgba(255, 255, 255, 0.2);
+    display: grid; place-items: center; overflow: hidden; color: var(--muted);
+    font-size: 0.62rem; text-align: center; line-height: 1.3; padding: 0.2rem;
+  }
+  .logo-preview img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .logo-actions { display: flex; gap: 0.6rem; flex: 1; min-width: 10rem; }
+  .logo-btn { height: 2.6rem; font-size: 0.85rem; flex: 1; }
+  .visually-hidden {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
+
+  .store-brand-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.9rem; }
+  .store-logo-img {
+    width: 2.9rem; height: 2.9rem; border-radius: 0.75rem; object-fit: contain; flex: none;
+    background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.16); padding: 0.25rem;
+  }
+  .store-name-text { font-size: 1.2rem; font-weight: 800; color: var(--ink); overflow-wrap: anywhere; }
+
+  .report-head-brand { display: flex; align-items: center; gap: 0.55rem; }
+  .print-logo-img { width: 30pt; height: 30pt; object-fit: contain; border-radius: 4pt; }
+
+  /* ---------- Share buttons ---------- */
+  .share-row { display: flex; gap: 0.6rem; margin-top: 0.9rem; flex-wrap: wrap; }
+  .share-btn {
+    flex: 1; min-width: 8rem; height: 2.9rem; border-radius: 0.85rem;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;
+    font-family: 'Tajawal', system-ui, sans-serif; font-weight: 800; font-size: 0.86rem;
+    cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.16); color: var(--ink);
+    background: rgba(255, 255, 255, 0.05); transition: transform 0.12s ease, background 0.15s ease;
+  }
+  .share-btn:active { transform: scale(0.97); }
+  .share-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .share-btn.wa { border-color: rgba(37, 211, 102, 0.5); }
+  .share-btn.wa:hover { background: rgba(37, 211, 102, 0.16); }
+  .share-btn.tg { border-color: rgba(0, 136, 204, 0.5); }
+  .share-btn.tg:hover { background: rgba(0, 136, 204, 0.16); }
+  .share-btn.copy:hover { background: rgba(255, 255, 255, 0.1); }
+
+  /* ---------- Net profit hero ---------- */
+  .net-card {
+    --tone: #c9d1ea; --tone-rgb: 201, 209, 234;
+    position: relative; padding: 1.4rem 1.25rem 1.3rem;
+    scroll-margin-top: 1rem;
+    border-color: rgba(var(--tone-rgb), 0.30);
+    background:
+      radial-gradient(120% 90% at 100% 0%, rgba(var(--tone-rgb), 0.15), transparent 62%),
+      var(--glass);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.07),
+      0 0 0 1px rgba(var(--tone-rgb), 0.08),
+      0 0 64px -14px rgba(var(--tone-rgb), 0.35);
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  @media (min-width: 640px) { .net-card { padding: 1.7rem 1.75rem 1.5rem; } }
+  .net-card[data-state="profit"] {
+    --tone: #2ee6a6; --tone-rgb: 46, 230, 166;
+    border-color: rgba(var(--tone-rgb), 0.55);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0 0 1px rgba(var(--tone-rgb), 0.18), 0 0 80px -10px rgba(var(--tone-rgb), 0.55);
+  }
+  .net-card[data-state="loss"] {
+    --tone: #ff3355; --tone-rgb: 255, 51, 85;
+    border-color: rgba(var(--tone-rgb), 0.7);
+    background:
+      radial-gradient(120% 90% at 100% 0%, rgba(var(--tone-rgb), 0.22), transparent 62%),
+      var(--glass);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0 0 1px rgba(var(--tone-rgb), 0.25), 0 0 90px -8px rgba(var(--tone-rgb), 0.65);
+  }
+
+  .net-top { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .net-ic {
+    width: 2.4rem; height: 2.4rem; border-radius: 0.8rem; display: grid; place-items: center;
+    color: var(--tone); background: rgba(var(--tone-rgb), 0.14); border: 1px solid rgba(var(--tone-rgb), 0.4);
+  }
+  .net-title { margin: 0; font-size: 1.05rem; font-weight: 800; }
+  .net-badge {
+    margin-inline-start: auto; padding: 0.15rem 0.75rem; border-radius: 999px;
+    font-size: 0.85rem; font-weight: 800; color: var(--tone);
+    background: rgba(var(--tone-rgb), 0.14); border: 1px solid rgba(var(--tone-rgb), 0.4);
+  }
+  .net-value-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.9rem; }
+  .net-value {
+    font-size: clamp(2.4rem, 11.5vw, 3.7rem); font-weight: 800; line-height: 1.15;
+    color: var(--tone); text-shadow: 0 0 30px rgba(var(--tone-rgb), 0.5);
+    overflow-wrap: anywhere;
+  }
+  .net-unit { font-size: 1.15rem; font-weight: 700; color: rgba(var(--tone-rgb), 0.85); }
+  .net-per { margin: 0.35rem 0 0; font-size: 0.92rem; color: rgba(232, 236, 248, 0.8); }
+  .net-per strong { color: var(--tone); font-weight: 800; }
+  .net-note { margin: 0.7rem 0 0; font-size: 0.92rem; color: rgba(232, 236, 248, 0.78); line-height: 1.7; }
+  .net-card[data-state="loss"] .net-note { color: #ffc2cc; }
+
+  /* ---------- Tiles ---------- */
+  .tile { padding: 1rem; }
+  .tile-l { margin: 0; font-size: 0.85rem; color: var(--muted); font-weight: 700; line-height: 1.5; }
+  .tile-v { margin: 0.2rem 0 0; font-size: 1.55rem; font-weight: 800; line-height: 1.35; overflow-wrap: anywhere; }
+  .tile-v small { font-size: 0.6em; font-weight: 700; color: var(--muted); }
+  .tile-s { margin: 0.1rem 0 0; font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+  .tone-good { color: var(--profit); text-shadow: 0 0 18px rgba(46, 230, 166, 0.35); }
+  .tone-bad { color: var(--loss); text-shadow: 0 0 18px rgba(255, 51, 85, 0.4); }
+  .tone-ads { color: var(--ads); }
+  .tone-neutral { color: var(--ink); }
+
+  /* ---------- Breakdown ---------- */
+  .chart-title { margin: 0; font-size: 1.05rem; font-weight: 800; }
+  .chart-note { margin: 0.15rem 0 0; font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+  .chart-wrap { position: relative; height: 15rem; margin: 1rem 0 0.4rem; filter: drop-shadow(0 0 22px rgba(127, 155, 255, 0.18)); }
+  .chart-empty {
+    margin: 1rem 0 0.4rem; height: 8rem; display: grid; place-items: center; text-align: center;
+    color: var(--muted); font-size: 0.92rem; border-radius: 1rem; border: 1px dashed rgba(255, 255, 255, 0.14);
+  }
+
+  .rows { margin-top: 0.6rem; }
+  .row {
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center; column-gap: 0.75rem;
+    padding: 0.7rem 0;
+  }
+  .row + .row { border-top: 1px solid rgba(255, 255, 255, 0.06); }
+  .row.total { margin-top: 0.15rem; padding-top: 0.9rem; border-top: 1px solid rgba(255, 255, 255, 0.22); }
+  .dot { width: 0.8rem; height: 0.8rem; border-radius: 50%; background: var(--c, #fff); box-shadow: 0 0 12px -1px var(--c, #fff); }
+  .r-label { margin: 0; font-size: 0.95rem; font-weight: 700; line-height: 1.4; }
+  .r-sub { margin: 0; font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+  .r-val { text-align: left; font-weight: 800; font-size: 1.02rem; line-height: 1.35; }
+  .r-pct { text-align: left; font-size: 0.78rem; color: var(--muted); font-weight: 500; }
+  .row.total .r-val { font-size: 1.15rem; }
+
+  /* ---------- Mini bar (mobile) ---------- */
+  .mini-bar {
+    --tone: #c9d1ea; --tone-rgb: 201, 209, 234;
+    position: fixed; z-index: 30;
+    left: 0.75rem; right: 0.75rem;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+    display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+    padding: 0.75rem 1rem; border-radius: 1.1rem;
+    color: var(--ink); font-family: 'Tajawal', system-ui, sans-serif; cursor: pointer;
+    background: rgba(12, 17, 36, 0.82);
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    border: 1px solid rgba(var(--tone-rgb), 0.55);
+    box-shadow: 0 0 34px -8px rgba(var(--tone-rgb), 0.6), 0 14px 30px -12px rgba(0, 0, 0, 0.8);
+    transition: transform 0.25s ease, opacity 0.25s ease;
+  }
+  .mini-bar[data-state="profit"] { --tone: #2ee6a6; --tone-rgb: 46, 230, 166; }
+  .mini-bar[data-state="loss"] { --tone: #ff3355; --tone-rgb: 255, 51, 85; }
+  .mini-bar.is-off { transform: translateY(150%); opacity: 0; pointer-events: none; }
+  .mini-bar:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+  .mini-l { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 0.95rem; }
+  .mini-l .i { color: var(--tone); }
+  .mini-v { font-weight: 800; font-size: 1.2rem; color: var(--tone); text-shadow: 0 0 18px rgba(var(--tone-rgb), 0.5); }
+  @media (min-width: 1024px) { .mini-bar { display: none; } }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; z-index: 50; left: 50%;
+    top: calc(env(safe-area-inset-top, 0px) + 1rem);
+    transform: translate(-50%, -160%);
+    max-width: calc(100vw - 2rem);
+    padding: 0.7rem 1.1rem; border-radius: 0.9rem;
+    font-size: 0.95rem; font-weight: 700; text-align: center;
+    background: rgba(12, 17, 36, 0.95); color: var(--ink);
+    border: 1px solid rgba(46, 230, 166, 0.55);
+    box-shadow: 0 0 30px -8px rgba(46, 230, 166, 0.6);
+    transition: transform 0.3s ease;
+  }
+  .toast.err { border-color: rgba(255, 51, 85, 0.65); box-shadow: 0 0 30px -8px rgba(255, 51, 85, 0.6); }
+  .toast.show { transform: translate(-50%, 0); }
+
+  .footnote { margin: 1.75rem 0 0; font-size: 0.85rem; line-height: 1.8; color: var(--muted); }
+
+  /* ---------- Report (print-only pieces) ---------- */
+  .print-only { display: none; }
+  #printImg { display: none; }
+  .inputs-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0.2rem 1.75rem; margin: 0.75rem 0 0; padding: 0; }
+  .inputs-list > div { display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; padding: 0.35rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.9rem; }
+  .inputs-list dt { margin: 0; color: var(--muted); font-weight: 500; }
+  .inputs-list dd { margin: 0; font-weight: 800; text-align: left; }
+
+  /* ---------- Print: A4، هوامش 2.5 سم، أسود على أبيض، ترقيم الصفحات ---------- */
+  @page {
+    size: A4;
+    margin: 10mm;
+    background: #ffffff;
+    @bottom-center {
+      content: "صفحة " counter(page) " من " counter(pages);
+      font-family: 'Tajawal', system-ui, sans-serif;
+      font-size: 8pt;
+      color: #444444;
+    }
+  }
+
+  @media print {
+    :root { color-scheme: light; --bg: #ffffff; --ink: #111111; --muted: #444444; --glass: #ffffff; --glass-border: #777777; }
+
+    html { font-size: 9.5pt; }
+    html, body { background: #ffffff !important; color: #111111 !important; min-height: 0 !important; }
+    body { font-size: 9.5pt; line-height: 1.25; font-weight: 500; }
+    * {
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      text-shadow: none !important; box-shadow: none !important;
+      -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+    }
+
+    /* إخفاء عناصر الشاشة */
+    .bg-orbs, .inputs-section, .no-print, .mini-bar, .toast, .screen-only, .chart-wrap { display: none !important; }
+    main { padding: 0 !important; max-width: none !important; width: 100% !important; }
+    .report-layout { display: block !important; }
+    .report-layout, .glass, .rows, .inputs-list { max-width: 100%; box-sizing: border-box; }
+    .print-only { display: block !important; }
+
+    /* منع الترحيل: العناوين تبقى مع محتواها، والأسطر لا تُبتر */
+    p, dd, dt { orphans: 3; widows: 3; }
+    h1, h2, h3 { break-after: avoid; page-break-after: avoid; }
+    .glass, .tile, .row, .inputs-list > div, .report-head { break-inside: avoid; page-break-inside: avoid; }
+
+    /* ترويسة التقرير */
+    .report-head {
+      display: flex !important; justify-content: space-between; align-items: flex-end; gap: 1rem;
+      padding-bottom: 4pt; margin-bottom: 6pt; border-bottom: 1pt solid #111111;
+    }
+    .report-head h1 { margin: 0; font-size: 14pt; font-weight: 800; line-height: 1.2; color: #111111; }
+    .report-head p { margin: 0; font-size: 8.5pt; color: #333333; }
+
+    /* البطاقات: خلفية بيضاء وحدود رفيعة لتوفير الحبر */
+    .glass { background: #ffffff !important; border: 0.6pt solid #777777 !important; border-radius: 4pt; }
+    .card { padding: 5pt 7pt; }
+
+    /* البطاقات مرتّبة عمودياً بمسافة أضيق بين كل بطاقة والتي تليها */
+    .report-layout.report-layout { display: flex !important; flex-direction: column; gap: 5pt !important; }
+    .rows { margin-top: 3pt; }
+
+    /* العناوين، بحجم أصغر قليلاً لكنها تبقى ضمن نطاق 14pt العريض */
+    .card-title, .chart-title, .net-title { font-size: 11pt; font-weight: 800; line-height: 1.15; color: #111111; }
+
+    /* بطاقة صافي الربح */
+    .net-card { padding: 6pt 8pt; background: #ffffff !important; border: 1.25pt solid var(--tone) !important; }
+    .net-card[data-state="idle"] { --tone: #111111; --tone-rgb: 17, 17, 17; }
+    .net-card[data-state="profit"] { --tone: #0a6b4b; --tone-rgb: 10, 107, 75; }
+    .net-card[data-state="loss"] { --tone: #b4132f; --tone-rgb: 180, 19, 47; }
+    .net-ic, .net-badge { background: #ffffff !important; border: 1pt solid var(--tone) !important; color: var(--tone) !important; }
+    .net-badge { font-size: 8.5pt; }
+    .net-value-row { margin-top: 2pt !important; }
+    .net-value { font-size: 17pt; line-height: 1.05; color: var(--tone) !important; }
+    .net-unit { font-size: 9pt; color: #111111 !important; }
+    .net-per { margin-top: 1pt !important; }
+    .net-per, .net-note { font-size: 8.5pt; line-height: 1.25; color: #111111 !important; margin-top: 2pt !important; }
+    .net-per strong { color: var(--tone) !important; }
+    .net-card[data-state="loss"] .net-note { color: #b4132f !important; }
+
+    /* الألوان الدلالية بدرجات داكنة */
+    .tone-good { color: #0a6b4b !important; }
+    .tone-bad { color: #b4132f !important; }
+    .tone-ads { color: #1f3a9e !important; }
+    .tone-neutral { color: #111111 !important; }
+
+    /* المؤشرات: عمودان لتناسب الهوامش */
+    .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 4pt !important; break-inside: avoid; page-break-inside: avoid; }
+    .tile { padding: 4pt 6pt; }
+    .tile-l { font-size: 7.8pt; color: #333333; line-height: 1.15; }
+    .tile-v { margin-top: 0 !important; font-size: 10.5pt; line-height: 1.2; }
+    .tile-s { font-size: 7.2pt; color: #444444; line-height: 1.15; }
+
+    /* المدخلات المعتمدة */
+    .inputs-list { gap: 0 16pt; margin-top: 3pt !important; }
+    .inputs-list > div { padding: 1.5pt 0; font-size: 8.3pt; line-height: 1.15; border-bottom: 0.5pt solid #bbbbbb; }
+    .inputs-list dt { color: #333333; font-weight: 500; }
+    .inputs-list dd { color: #111111; font-weight: 800; white-space: nowrap; }
+
+    /* الرسم والتفصيل المالي */
+    .chart-note { margin: 1pt 0 0 !important; font-size: 7.5pt; color: #444444; line-height: 1.2; }
+    #printImg.ready { display: block; margin: 3pt auto 2pt; max-height: 32mm; max-width: 100%; width: auto; }
+    .row { grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 6pt; padding: 2pt 0; }
+    .row + .row { border-top: 0.5pt solid #bbbbbb; }
+    .row.total { margin-top: 1pt; padding-top: 3pt; border-top: 1pt solid #111111; }
+    .r-label { font-size: 8.5pt; line-height: 1.15; color: #111111; }
+    .r-sub, .r-pct { font-size: 7.3pt; line-height: 1.1; color: #444444; }
+    .r-val { font-size: 8.5pt; white-space: nowrap; }
+    .row.total .r-val { font-size: 9.5pt; }
+    .dot { width: 6pt; height: 6pt; }
+    .rows > .row:first-child .dot { background: #111111 !important; }
+    .unit { color: #333333; }
+
+    .footnote { margin-top: 5pt; font-size: 7.3pt; line-height: 1.25; color: #333333; orphans: 3; widows: 3; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+
+<body class="antialiased">
+<div class="bg-orbs" aria-hidden="true"></div>
+
+<noscript>
+  <p style="position:relative;z-index:10;padding:1rem;text-align:center;color:#ffc2cc">يحتاج هذا التطبيق إلى تفعيل JavaScript ليعمل.</p>
+</noscript>
+
+<main class="relative z-10 mx-auto w-full max-w-6xl px-4 pt-6 pb-32 sm:px-6 lg:pb-16 lg:pt-10">
+
+  <header class="mb-6 lg:mb-8 screen-only">
+    <div id="storeBrandRow" class="store-brand-row" hidden>
+      <img id="storeLogoImg" class="store-logo-img" alt="شعار المتجر">
+      <span id="storeNameText" class="store-name-text"></span>
+    </div>
+    <h1 style="margin:0;font-size:clamp(1.55rem,5.6vw,2.6rem);font-weight:800;line-height:1.4">
+      حاسبة وصافي أرباح المتاجر والإعلانات الممولة في العراق
+    </h1>
+    <p style="margin:0.5rem 0 0;color:var(--muted);font-size:1rem;max-width:42rem">
+      أدخل أرقام حملتك وطلباتك، وشاهد الربح الفعلي بعد كلفة البضاعة والإعلانات والشحن والرواجع.
+    </p>
+  </header>
+
+  <header class="print-only report-head">
+    <div class="report-head-brand">
+      <img id="printLogoImg" class="print-logo-img" alt="" hidden>
+      <div>
+        <h1 id="printStoreName">تقرير صافي أرباح المتجر</h1>
+        <p>حاسبة المتاجر والإعلانات الممولة في العراق</p>
+      </div>
+    </div>
+    <p id="printDate"></p>
+  </header>
+
+  <div class="grid gap-5 lg:grid-cols-2 lg:gap-6 lg:items-start report-layout">
+
+    <!-- ===================== المدخلات ===================== -->
+    <section aria-label="المدخلات" class="space-y-5 inputs-section">
+
+      <!-- معلومات المتجر -->
+      <section class="glass card card-store">
+        <header class="card-head">
+          <span class="chip-ic">
+            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9a2 2 0 0 0 2 2c1.1 0 2-.9 2-2a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0c0 1.1.9 2 2 2a2 2 0 0 0 2-2L19 4H5z"/><path d="M4 11v8a1 1 0 0 0 1 1h3v-5h8v5h3a1 1 0 0 0 1-1v-8"/></svg>
+          </span>
+          <div>
+            <h2 class="card-title">معلومات المتجر</h2>
+            <p class="card-sub">اسم المتجر وشعاره، يظهران أعلى الصفحة وفي تقرير PDF</p>
+          </div>
+        </header>
+        <div class="fields">
+          <div>
+            <label class="lbl" for="storeName">اسم المتجر</label>
+            <div class="field">
+              <input id="storeName" class="inp inp-plain" type="text" enterkeyhint="next" autocomplete="off" maxlength="60" placeholder="مثال: متجر النخبة">
+            </div>
+          </div>
+          <div>
+            <span class="lbl">شعار المتجر (اللوغو)</span>
+            <div class="logo-row">
+              <div id="logoPreview" class="logo-preview" aria-hidden="true">بلا شعار</div>
+              <div class="logo-actions">
+                <label for="storeLogo" class="btn btn-ghost logo-btn" style="cursor:pointer">
+                  <svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:1.1rem;height:1.1rem"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                  رفع صورة
+                </label>
+                <button id="logoRemoveBtn" type="button" class="btn btn-ghost logo-btn" hidden>إزالة الشعار</button>
+              </div>
+              <input id="storeLogo" type="file" accept="image/*" class="visually-hidden">
+            </div>
+            <p class="hint">يُحفظ الاسم والشعار في هذا المتصفح تلقائياً ويظهران في المرات القادمة دون الحاجة لإعادة رفعهما.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- الإعلانات -->
+      <section class="glass card card-ads">
+        <header class="card-head">
+          <span class="chip-ic">
+            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+          </span>
+          <div>
+            <h2 class="card-title">الإعلانات الممولة</h2>
+            <p class="card-sub">الصرف بالدولار وسعر التحويل إلى الدينار</p>
+          </div>
+        </header>
+        <div class="fields">
+          <div>
+            <label class="lbl" for="adUsd">صرف الإعلانات الممولة</label>
+            <div class="field">
+              <input id="adUsd" class="inp" type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" enterkeyhint="next" autocomplete="off" dir="ltr" placeholder="0">
+              <span class="unit-chip">$ USD</span>
+            </div>
+          </div>
+          <div>
+            <label class="lbl" for="rate">سعر صرف 100 دولار بالدينار العراقي</label>
+            <div class="field">
+              <input id="rate" class="inp" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" autocomplete="off" dir="ltr" placeholder="150,000">
+              <span class="unit-chip">د.ع</span>
+            </div>
+            <p class="hint">مثال: 150,000 د.ع مقابل كل 100 دولار.</p>
+          </div>
+        </div>
+        <p id="liveAds" class="live" hidden></p>
+      </section>
+
+      <!-- البضاعة والأسعار -->
+      <section class="glass card card-goods">
+        <header class="card-head">
+          <span class="chip-ic">
+            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+          </span>
+          <div>
+            <h2 class="card-title">البضاعة والأسعار</h2>
+            <p class="card-sub">كلفة الشراء وسعر البيع للقطعة الواحدة</p>
+          </div>
+        </header>
+        <div class="fields">
+          <div>
+            <label class="lbl" for="unitCost">كلفة شراء القطعة الواحدة</label>
+            <div class="field">
+              <input id="unitCost" class="inp" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" autocomplete="off" dir="ltr" placeholder="0">
+              <span class="unit-chip">د.ع</span>
+            </div>
+          </div>
+          <div>
+            <label class="lbl" for="unitPrice">سعر بيع القطعة للزبون</label>
+            <div class="field">
+              <input id="unitPrice" class="inp" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" autocomplete="off" dir="ltr" placeholder="0">
+              <span class="unit-chip">د.ع</span>
+            </div>
+          </div>
+          <div>
+            <label class="lbl" for="piecesPerOrder">متوسط عدد القطع في الطلب الواحد</label>
+            <div class="field">
+              <input id="piecesPerOrder" class="inp" type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" enterkeyhint="next" autocomplete="off" dir="ltr" placeholder="1">
+              <span class="unit-chip">قطعة</span>
+            </div>
+            <p class="hint">كلفة البضاعة = الطلبات المكتملة × عدد القطع × كلفة شراء القطعة.</p>
+          </div>
+        </div>
+        <p id="liveUnit" class="live" hidden></p>
+      </section>
+
+      <!-- التغليف والعمولة -->
+      <section class="glass card card-extra">
+        <header class="card-head">
+          <span class="chip-ic">
+            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><line x1="19" x2="5" y1="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+          </span>
+          <div>
+            <h2 class="card-title">التغليف والعمولة</h2>
+            <p class="card-sub">مصاريف إضافية تُخصم عن كل طلب مكتمل</p>
+          </div>
+        </header>
+        <div class="fields">
+          <div>
+            <label class="lbl" for="packaging">كلفة التغليف والطباعة للطلب الواحد</label>
+            <div class="field">
+              <input id="packaging" class="inp" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" autocomplete="off" dir="ltr" placeholder="0">
+              <span class="unit-chip">د.ع</span>
+            </div>
+          </div>
+          <div>
+            <span id="commLabel" class="lbl">عمولة المنصة / الوسيط <span class="tag">(اختياري)</span></span>
+            <div class="seg" role="radiogroup" aria-labelledby="commLabel">
+              <button type="button" role="radio" aria-checked="true" data-mode="percent">نسبة % من البيع</button>
+              <button type="button" role="radio" aria-checked="false" data-mode="fixed">مبلغ ثابت (د.ع)</button>
+            </div>
+            <div class="field" style="margin-top:0.6rem">
+              <input id="commission" class="inp" type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" enterkeyhint="next" autocomplete="off" dir="ltr" placeholder="0" aria-labelledby="commLabel">
+              <span id="commUnit" class="unit-chip">%</span>
+            </div>
+            <p id="commHint" class="hint">نسبة مئوية من سعر بيع كل طلب مكتمل، مثال: 5 أو 2.5</p>
+          </div>
+        </div>
+        <p id="liveExtra" class="live" hidden></p>
+      </section>
+
+      <!-- الطلبات والتوصيل -->
+      <section class="glass card card-ship">
+        <header class="card-head">
+          <span class="chip-ic">
+            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+          </span>
+          <div>
+            <h2 class="card-title">الطلبات والتوصيل</h2>
+            <p class="card-sub">الطلبات المستلمة والرواجع وأجور التوصيل</p>
+          </div>
+        </header>
+        <div class="fields">
+          <div>
+            <label class="lbl" for="totalOrders">إجمالي عدد الطلبات المستلمة</label>
+            <div class="field">
+              <input id="totalOrders" class="inp" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" autocomplete="off" dir="ltr" placeholder="0">
+              <span class="unit-chip">طلب</span>
+            </div>
+          </div>
+          <div>
+            <label class="lbl" for="deliveryFee">أجور توصيل الطلب المكتمل</label>
+            <div class="field">
+              <input id="deliveryFee" class="inp" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" autocomplete="off" dir="ltr" placeholder="0">
+              <span class="unit-chip">د.ع</span>
+            </div>
+          </div>
+          <div>
+            <label class="lbl" for="returns">عدد الطلبات المرجعة (الرواجع)</label>
+            <div class="field">
+              <input id="returns" class="inp" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" autocomplete="off" dir="ltr" placeholder="0">
+              <span class="unit-chip">طلب</span>
+            </div>
+          </div>
+          <div>
+            <label class="lbl" for="returnFee">أجور التوصيل المقتطعة عن كل طلب راجع</label>
+            <div class="field">
+              <input id="returnFee" class="inp" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" autocomplete="off" dir="ltr" placeholder="0">
+              <span class="unit-chip">د.ع</span>
+            </div>
+          </div>
+          <div>
+            <label class="lbl" for="damagedPct">نسبة البضاعة التالفة أو المفقودة من الرواجع <span class="tag">(اختياري)</span></label>
+            <div class="field">
+              <input id="damagedPct" class="inp" type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" enterkeyhint="done" autocomplete="off" dir="ltr" placeholder="0">
+              <span class="unit-chip">%</span>
+            </div>
+            <p class="hint">تُخصم كلفة هذه النسبة من الرواجع التالفة أو الضائعة من صافي الربح لأنها لا تعود صالحة للبيع.</p>
+          </div>
+        </div>
+        <p id="liveOrders" class="live" hidden></p>
+      </section>
+
+      <!-- الأزرار -->
+      <div>
+        <div class="actions">
+          <button id="saveBtn" type="button" class="btn btn-primary">
+            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>
+            حفظ الحسابات
+          </button>
+          <button id="resetBtn" type="button" class="btn btn-ghost">
+            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            تصفير الحقول
+          </button>
+        </div>
+        <p id="savedAt" class="hint" hidden></p>
+      </div>
+    </section>
+
+    <!-- ===================== النتائج ===================== -->
+    <section id="results" aria-label="النتائج" class="space-y-5">
+
+      <!-- تصدير التقرير -->
+      <div class="no-print">
+        <button id="exportBtn" type="button" class="btn btn-ghost" style="width:100%;flex:none">
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>
+          تصدير التقرير (PDF)
+        </button>
+        <p class="hint">في نافذة الطباعة اختر «حفظ كملف PDF». وإن لم تظهر النافذة، افتح الملف من متصفح الهاتف (Chrome أو Safari) بدل معاينة التطبيق.</p>
+      </div>
+
+      <!-- صافي الربح -->
+      <section id="netCard" class="glass net-card" data-state="idle">
+        <div class="net-top">
+          <span id="netIcon" class="net-ic"></span>
+          <h2 class="net-title">صافي الربح الفعلي</h2>
+          <span id="netBadge" class="net-badge">بانتظار البيانات</span>
+        </div>
+        <div class="net-value-row">
+          <span id="netValue" class="net-value num" dir="ltr">0</span>
+          <span class="net-unit">د.ع</span>
+        </div>
+        <p id="netPer" class="net-per" hidden></p>
+        <p id="netNote" class="net-note">أدخل الأرقام في البطاقات وستظهر النتيجة هنا فوراً.</p>
+        <div class="share-row no-print">
+          <button id="shareWaBtn" type="button" class="share-btn wa">
+            <svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:1.05rem;height:1.05rem"><path d="M3 21l1.65-4.95A8.5 8.5 0 1 1 8.5 19.5z"/><path d="M8.5 9.5a.5.5 0 0 1 1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 1 0 1"/></svg>
+            واتساب
+          </button>
+          <button id="shareTgBtn" type="button" class="share-btn tg">
+            <svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:1.05rem;height:1.05rem"><path d="m22 2-20 8 6 2 2 6 3-4 6 4z"/></svg>
+            تليجرام
+          </button>
+          <button id="shareCopyBtn" type="button" class="share-btn copy">
+            <svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:1.05rem;height:1.05rem"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            نسخ الملخص
+          </button>
+        </div>
+      </section>
+
+      <!-- المؤشرات -->
+      <div class="grid grid-cols-2 gap-3 kpi-grid">
+        <div class="glass tile">
+          <p class="tile-l">نسبة هامش الربح</p>
+          <p id="tMargin" class="tile-v tone-neutral">—</p>
+          <p id="tMarginSub" class="tile-s">من إجمالي المبيعات</p>
+        </div>
+        <div class="glass tile">
+          <p class="tile-l">العائد على الإنفاق الإعلاني (ROAS)</p>
+          <p id="tRoas" class="tile-v tone-neutral">—</p>
+          <p id="tRoasSub" class="tile-s">المبيعات ÷ كلفة الإعلانات</p>
+        </div>
+        <div class="glass tile">
+          <p class="tile-l">نسبة الرواجع</p>
+          <p id="tReturn" class="tile-v tone-neutral">—</p>
+          <p id="tReturnSub" class="tile-s">من إجمالي الطلبات</p>
+        </div>
+        <div class="glass tile">
+          <p class="tile-l">كلفة الإعلان لكل طلب مكتمل</p>
+          <p id="tCpa" class="tile-v tone-ads">—</p>
+          <p id="tCpaSub" class="tile-s">الإعلانات ÷ الطلبات المكتملة</p>
+        </div>
+        <div class="glass tile" style="grid-column:1 / -1">
+          <p class="tile-l">نقطة التعادل: الحد الأقصى لصرف الإعلان لكل طلب مكتمل</p>
+          <p id="tBeCpa" class="tile-v tone-neutral">—</p>
+          <p id="tBeCpaSub" class="tile-s">قبل أن تبدأ الحملة بتحقيق خسارة</p>
+        </div>
+      </div>
+
+      <!-- المدخلات المعتمدة (تظهر في التقرير المطبوع فقط) -->
+      <section id="printInputs" class="glass card print-only">
+        <h3 class="chart-title">المدخلات المعتمدة في الحساب</h3>
+        <dl id="printList" class="inputs-list"></dl>
+      </section>
+
+      <!-- الرسم البياني والتفصيل -->
+      <section class="glass card">
+        <h3 id="chartTitle" class="chart-title">توزيع الإيرادات</h3>
+        <p id="chartNote" class="chart-note">كل جزء يمثل حصته من إجمالي المبيعات.</p>
+
+        <div id="chartWrap" class="chart-wrap" hidden>
+          <canvas id="pie" role="img" aria-label="رسم بياني دائري لتوزيع الإيرادات والتكاليف"></canvas>
+        </div>
+        <img id="printImg" alt="رسم بياني دائري لتوزيع الإيرادات والتكاليف">
+        <div id="chartEmpty" class="chart-empty">ستظهر الحصص هنا بعد إدخال الأرقام.</div>
+
+        <div class="rows">
+          <div class="row">
+            <span class="dot" style="--c:#e8ecf8"></span>
+            <div>
+              <p class="r-label">إجمالي المبيعات (Gross Revenue)</p>
+              <p class="r-sub">الطلبات المكتملة × سعر البيع</p>
+            </div>
+            <div>
+              <div id="rvVal" class="r-val">—</div>
+              <div id="rvPct" class="r-pct"></div>
+            </div>
+          </div>
+
+          <div class="row">
+            <span class="dot" style="--c:var(--cogs)"></span>
+            <div>
+              <p class="r-label">كلفة البضاعة المباعة</p>
+              <p class="r-sub">الطلبات المكتملة × كلفة الشراء</p>
+            </div>
+            <div>
+              <div id="cgVal" class="r-val">—</div>
+              <div id="cgPct" class="r-pct"></div>
+            </div>
+          </div>
+
+          <div class="row">
+            <span class="dot" style="--c:var(--ads)"></span>
+            <div>
+              <p class="r-label">كلفة الإعلانات بالدينار</p>
+              <p class="r-sub">الصرف بالدولار × سعر الصرف ÷ 100</p>
+            </div>
+            <div>
+              <div id="adVal" class="r-val">—</div>
+              <div id="adPct" class="r-pct"></div>
+            </div>
+          </div>
+
+          <div class="row">
+            <span class="dot" style="--c:var(--ship)"></span>
+            <div>
+              <p class="r-label">الشحن والتوصيل الإجمالي</p>
+              <p id="shSub" class="r-sub">الطلبات المكتملة + خسائر الرواجع</p>
+            </div>
+            <div>
+              <div id="shVal" class="r-val">—</div>
+              <div id="shPct" class="r-pct"></div>
+            </div>
+          </div>
+
+          <div class="row">
+            <span class="dot" style="--c:var(--damage)"></span>
+            <div>
+              <p class="r-label">خسائر التالف والمفقود من الرواجع</p>
+              <p id="dmSub" class="r-sub">نسبة من قيمة البضاعة المرتجعة</p>
+            </div>
+            <div>
+              <div id="dmVal" class="r-val">—</div>
+              <div id="dmPct" class="r-pct"></div>
+            </div>
+          </div>
+
+          <div class="row">
+            <span class="dot" style="--c:var(--pack)"></span>
+            <div>
+              <p class="r-label">كلفة التغليف والطباعة</p>
+              <p id="pkSub" class="r-sub">كلفة الطلب × الطلبات المكتملة</p>
+            </div>
+            <div>
+              <div id="pkVal" class="r-val">—</div>
+              <div id="pkPct" class="r-pct"></div>
+            </div>
+          </div>
+
+          <div class="row">
+            <span class="dot" style="--c:var(--comm)"></span>
+            <div>
+              <p class="r-label">عمولة المنصة / الوسيط</p>
+              <p id="cmSub" class="r-sub">اختياري: نسبة من سعر البيع</p>
+            </div>
+            <div>
+              <div id="cmVal" class="r-val">—</div>
+              <div id="cmPct" class="r-pct"></div>
+            </div>
+          </div>
+
+          <div class="row total">
+            <span id="ntDot" class="dot" style="--c:var(--profit)"></span>
+            <div>
+              <p class="r-label">صافي الربح</p>
+            </div>
+            <div>
+              <div id="ntVal" class="r-val">—</div>
+              <div id="ntPct" class="r-pct"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <p class="footnote">
+    طريقة الحساب: كلفة البضاعة = الطلبات المكتملة × متوسط عدد القطع في الطلب × كلفة شراء القطعة. الطلبات المرجعة تعود إلى المخزون افتراضياً، فلا تدخل إيراداتها ولا كلفة بضاعتها في الحساب، وتُحتسب عليها أجور التوصيل المقتطعة، وإن حُدّدت نسبة تالف أو مفقود فتُخصم قيمة تلك النسبة من صافي الربح لأنها بضاعة غير قابلة لإعادة البيع.
+    صافي الربح = المبيعات − كلفة البضاعة − الإعلانات − الشحن − خسائر التالف من الرواجع − التغليف − العمولة.
+    التغليف والعمولة يُحتسبان على الطلبات المكتملة فقط. نقطة التعادل للإعلان هي الحد الأقصى لصرف الإعلان على كل طلب مكتمل قبل تحوّل النتيجة إلى خسارة.
+  </p>
+</main>
+
+<!-- شريط صافي الربح على الهاتف -->
+<button id="miniBar" type="button" class="mini-bar is-off" data-state="idle" aria-label="عرض النتائج">
+  <span class="mini-l">
+    <span id="miniIcon"></span>
+    <span>صافي الربح</span>
+  </span>
+  <span class="mini-v"><span id="miniValue" class="num" dir="ltr">0</span> <span class="unit">د.ع</span></span>
+</button>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- إعدادات ---------- */
+  var STORAGE_KEY = 'iq-store-profit-calc-v1';
+  var BRAND_STORAGE_KEY = 'iq-store-profit-calc-brand-v1';
+  var DEFAULTS = {
+    adUsd: '', rate: '150,000', unitCost: '', unitPrice: '', piecesPerOrder: '1',
+    totalOrders: '', returns: '', deliveryFee: '', returnFee: '', damagedPct: '',
+    packaging: '', commission: ''
+  };
+  var FIELD_IDS = Object.keys(DEFAULTS);
+  var INPUT_IDS = ['adUsd', 'unitCost', 'unitPrice', 'totalOrders', 'returns', 'deliveryFee', 'returnFee', 'damagedPct', 'packaging', 'commission'];
+  var COLORS = { cogs: '#f5b94a', ads: '#7f9bff', ship: '#4dd6e0', damage: '#ff9f43', pack: '#c27bff', comm: '#ff7eb6', profit: '#2ee6a6' };
+  var ORIGINAL_TITLE = document.title;
+  var printImgTimer = null;
+  var lastPrintSrc = '';
+  var autoSaveTimer = null;
+
+  /* نمط العمولة: percent = نسبة من سعر البيع، fixed = مبلغ ثابت لكل طلب مكتمل */
+  var commissionMode = 'percent';
+  function isDecimal(id) {
+    return id === 'adUsd' || id === 'piecesPerOrder' || id === 'damagedPct' ||
+      (id === 'commission' && commissionMode === 'percent');
+  }
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var nf = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+  var fmt = function (n) { var r = Math.round(n); return nf.format(r === 0 ? 0 : r); };
+  var N = function (s) { return '<span class="num">' + s + '</span>'; };
+  var U = ' <span class="unit">د.ع</span>';
+
+  var ICON = function (p) { return '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + p + '</svg>'; };
+  var ICONS = {
+    profit: ICON('<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>'),
+    loss: ICON('<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>'),
+    even: ICON('<path d="M5 12h14"/>'),
+    idle: ICON('<rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/>')
+  };
+
+  /* ---------- تنظيف وتنسيق الأرقام ---------- */
+  function normalizeDigits(s) {
+    return String(s)
+      .replace(/[\u0660-\u0669]/g, function (c) { return c.charCodeAt(0) - 0x0660; })
+      .replace(/[\u06F0-\u06F9]/g, function (c) { return c.charCodeAt(0) - 0x06F0; })
+      .replace(/\u066B/g, '.')
+      .replace(/[\u066C\u060C]/g, ',');
+  }
+
+  function formatNumberString(input, allowDecimal, caret) {
+    var raw = normalizeDigits(input);
+    var pos = (caret == null) ? raw.length : caret;
+    var intPart = '', decPart = '', hasDot = false, kept = 0;
+
+    for (var i = 0; i < raw.length; i++) {
+      var ch = raw.charAt(i), keep = false;
+      if (ch >= '0' && ch <= '9') {
+        keep = true;
+        if (hasDot) decPart += ch; else intPart += ch;
+      } else if (allowDecimal && ch === '.' && !hasDot) {
+        keep = true; hasDot = true;
+      }
+      if (keep && i < pos) kept++;
+    }
+
+    var trimmed = intPart.replace(/^0+(?=\d)/, '');
+    kept = Math.max(0, kept - (intPart.length - trimmed.length));
+    intPart = trimmed.slice(0, 12);
+    decPart = decPart.slice(0, 2);
+
+    if (allowDecimal && hasDot && intPart === '') { intPart = '0'; kept += 1; }
+
+    var text = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    if (allowDecimal && hasDot) text += '.' + decPart;
+
+    var sigTotal = intPart.length + (hasDot && allowDecimal ? 1 : 0) + decPart.length;
+    kept = Math.min(kept, sigTotal);
+
+    var idx = 0, count = 0;
+    while (idx < text.length && count < kept) {
+      if (text.charAt(idx) !== ',') count++;
+      idx++;
+    }
+    return { text: text, caret: idx };
+  }
+
+  function formatField(el) {
+    var res = formatNumberString(el.value, isDecimal(el.id), el.selectionStart);
+    if (el.value !== res.text) {
+      el.value = res.text;
+      try { el.setSelectionRange(res.caret, res.caret); } catch (e) { /* ignore */ }
+    }
+  }
+
+  function getNum(id) {
+    var s = normalizeDigits($(id).value).replace(/,/g, '');
+    var n = parseFloat(s);
+    return isFinite(n) ? n : 0;
+  }
+
+  /* ---------- الحسابات ---------- */
+  function compute() {
+    var adUsd = getNum('adUsd'), rate = getNum('rate');
+    var unitCost = getNum('unitCost'), unitPrice = getNum('unitPrice');
+    var piecesPerOrderRaw = getNum('piecesPerOrder');
+    var piecesPerOrder = piecesPerOrderRaw > 0 ? piecesPerOrderRaw : 1;
+    var deliveryFee = getNum('deliveryFee'), returnFee = getNum('returnFee');
+    var packagingCost = getNum('packaging'), commissionValue = getNum('commission');
+    var damagedPctRaw = getNum('damagedPct');
+    var damagedPct = Math.min(100, Math.max(0, damagedPctRaw));
+    var total = Math.max(0, Math.floor(getNum('totalOrders')));
+    var returnsRaw = Math.max(0, Math.floor(getNum('returns')));
+    var returns = Math.min(returnsRaw, total);
+    var delivered = total - returns;
+
+    var revenue = delivered * unitPrice;
+    var cogs = delivered * piecesPerOrder * unitCost;
+    var adsIqd = adUsd * rate / 100;
+    var shipOk = delivered * deliveryFee;
+    var shipRet = returns * returnFee;
+    var shipping = shipOk + shipRet;
+    var damagedLoss = returns * piecesPerOrder * unitCost * damagedPct / 100;
+    var packaging = delivered * packagingCost;
+    var commRate = commissionMode === 'percent' ? Math.min(100, commissionValue) : 0;
+    var commission = commissionMode === 'percent' ? revenue * commRate / 100 : delivered * commissionValue;
+    var net = revenue - cogs - adsIqd - shipping - damagedLoss - packaging - commission;
+
+    var contribution = revenue - cogs - shipping - damagedLoss - packaging - commission;
+    var hasInput = INPUT_IDS.some(function (id) { return getNum(id) > 0; });
+
+    return {
+      adUsd: adUsd, rate: rate, unitCost: unitCost, unitPrice: unitPrice,
+      piecesPerOrder: piecesPerOrder, piecesPerOrderRaw: piecesPerOrderRaw,
+      total: total, returnsRaw: returnsRaw, returns: returns, delivered: delivered,
+      revenue: revenue, cogs: cogs, adsIqd: adsIqd, shipOk: shipOk, shipRet: shipRet, shipping: shipping,
+      damagedLoss: damagedLoss, damagedPct: damagedPct,
+      packaging: packaging, commission: commission, packagingCost: packagingCost,
+      commissionValue: commissionValue, commRate: commRate, commissionMode: commissionMode,
+      net: net,
+      margin: revenue > 0 ? (net / revenue) * 100 : null,
+      roas: adsIqd > 0 ? revenue / adsIqd : null,
+      beRoas: (adsIqd > 0 && contribution > 0) ? revenue / contribution : null,
+      returnRate: total > 0 ? (returns / total) * 100 : null,
+      cpa: delivered > 0 ? adsIqd / delivered : null,
+      beCpa: delivered > 0 ? contribution / delivered : null,
+      hasInput: hasInput
+    };
+  }
+
+  /* ---------- الرسم البياني ---------- */
+  var chart = null;
+
+  function updateChart(items) {
+    var wrap = $('chartWrap'), empty = $('chartEmpty');
+
+    if (typeof Chart === 'undefined') {
+      wrap.hidden = true; empty.hidden = false;
+      empty.textContent = 'تعذّر تحميل مكتبة الرسم البياني. تحقق من اتصال الإنترنت.';
+      return;
+    }
+
+    var shown = items.filter(function (i) { return i.value > 0; });
+    if (!shown.length) {
+      wrap.hidden = true; empty.hidden = false;
+      empty.textContent = 'ستظهر الحصص هنا بعد إدخال الأرقام.';
+      return;
+    }
+
+    wrap.hidden = false; empty.hidden = true;
+    var labels = shown.map(function (i) { return i.label; });
+    var data = shown.map(function (i) { return Math.round(i.value); });
+    var colors = shown.map(function (i) { return i.color; });
+
+    if (!chart) {
+      var FONT = "'Tajawal', system-ui, sans-serif";
+      Chart.defaults.font.family = FONT;
+      Chart.defaults.color = '#8b95b5';
+      chart = new Chart($('pie'), {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{ data: data, backgroundColor: colors, borderColor: '#0a0f21', borderWidth: 3, hoverOffset: 8 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: reduceMotion ? false : { duration: 450 },
+          layout: { padding: 10 },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              rtl: true,
+              textDirection: 'rtl',
+              padding: 12,
+              cornerRadius: 10,
+              backgroundColor: 'rgba(10,15,33,0.96)',
+              borderColor: 'rgba(255,255,255,0.14)',
+              borderWidth: 1,
+              bodyFont: { family: FONT, size: 13, weight: '700' },
+              callbacks: {
+                title: function () { return ''; },
+                label: function (ctx) {
+                  var total = ctx.dataset.data.reduce(function (a, b) { return a + b; }, 0);
+                  var p = total ? (ctx.parsed / total * 100).toFixed(1) : '0.0';
+                  return ' ' + ctx.label + ': ' + nf.format(ctx.parsed) + ' د.ع (' + p + '%)';
+                }
+              }
+            }
+          }
+        }
+      });
+    } else {
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = data;
+      chart.data.datasets[0].backgroundColor = colors;
+      chart.update();
+    }
+  }
+
+  /* ---------- عرض النتائج ---------- */
+  var netVisible = false, hasInputFlag = false;
+
+  function syncMini() {
+    $('miniBar').classList.toggle('is-off', netVisible || !hasInputFlag);
+  }
+
+  function setTile(valId, subId, valHTML, toneClass, subHTML) {
+    var v = $(valId);
+    v.innerHTML = valHTML;
+    v.className = 'tile-v ' + toneClass;
+    $(subId).innerHTML = subHTML;
+  }
+
+  function render() {
+    var c = compute();
+    var state = !c.hasInput ? 'idle' : (c.net > 0.5 ? 'profit' : (c.net < -0.5 ? 'loss' : 'even'));
+    var tone = (state === 'profit' || state === 'loss') ? state : 'idle';
+
+    /* ملاحظات حيّة أسفل البطاقات */
+    var liveAds = $('liveAds');
+    if (c.adUsd > 0) {
+      liveAds.hidden = false;
+      liveAds.innerHTML = c.rate > 0
+        ? 'كلفة الإعلانات بالدينار: <strong>' + N(fmt(c.adsIqd)) + U + '</strong>'
+        : 'أدخل سعر الصرف ليتم تحويل الإعلانات إلى دينار.';
+      liveAds.className = c.rate > 0 ? 'live' : 'live warn';
+    } else {
+      liveAds.hidden = true;
+    }
+
+    var liveUnit = $('liveUnit');
+    if (c.unitCost > 0 || c.unitPrice > 0) {
+      var m = c.unitPrice - c.unitCost;
+      liveUnit.hidden = false;
+      liveUnit.className = m < 0 ? 'live bad warn' : 'live';
+      liveUnit.innerHTML = 'ربح القطعة قبل باقي المصاريف: <strong>' + N(fmt(m)) + U + '</strong>' +
+        (m < 0 ? ' — تبيع بأقل من الكلفة.' : '');
+    } else {
+      liveUnit.hidden = true;
+    }
+
+    var liveOrders = $('liveOrders');
+    if (c.total > 0 || c.returnsRaw > 0) {
+      liveOrders.hidden = false;
+      if (c.returnsRaw > c.total) {
+        liveOrders.className = 'live warn';
+        liveOrders.innerHTML = 'عدد الرواجع أكبر من إجمالي الطلبات. تم احتسابها مساوية للإجمالي (' + N(fmt(c.total)) + ').';
+      } else {
+        liveOrders.className = 'live';
+        liveOrders.innerHTML = 'الطلبات المكتملة: <strong>' + N(fmt(c.delivered)) + '</strong> طلب';
+      }
+    } else {
+      liveOrders.hidden = true;
+    }
+
+    var liveExtra = $('liveExtra');
+    var extraTotal = c.packaging + c.commission;
+    var overPct = c.commissionMode === 'percent' && c.commissionValue > 100;
+    if (extraTotal > 0 || overPct) {
+      liveExtra.hidden = false;
+      liveExtra.className = overPct ? 'live warn' : 'live';
+      liveExtra.innerHTML = 'مصاريف التغليف والعمولة: <strong>' + N(fmt(extraTotal)) + U + '</strong>' +
+        (overPct ? '<br>نسبة العمولة أكبر من 100%، تم احتسابها 100%.' : '');
+    } else {
+      liveExtra.hidden = true;
+    }
+
+    /* بطاقة صافي الربح */
+    $('netCard').dataset.state = tone;
+    $('netValue').textContent = fmt(c.net);
+    $('netIcon').innerHTML = ICONS[state];
+
+    var badge = { profit: 'ربح', loss: 'خسارة', even: 'متعادل', idle: 'بانتظار البيانات' }[state];
+    $('netBadge').textContent = badge;
+
+    var note;
+    if (state === 'profit') note = 'ربح صافٍ بعد كلفة البضاعة والإعلانات والشحن.';
+    else if (state === 'loss') note = 'تنبيه: التكاليف تفوق الإيرادات بمقدار ' + N(fmt(Math.abs(c.net))) + U + '. راجع سعر البيع أو كلفة الإعلانات أو نسبة الرواجع.';
+    else if (state === 'even') note = 'الإيرادات تغطي التكاليف تماماً، بلا ربح ولا خسارة.';
+    else note = 'أدخل الأرقام في البطاقات وستظهر النتيجة هنا فوراً.';
+    $('netNote').innerHTML = note;
+
+    var per = $('netPer');
+    if (c.hasInput && c.delivered > 0) {
+      per.hidden = false;
+      per.innerHTML = 'لكل طلب مكتمل: <strong>' + N(fmt(c.net / c.delivered)) + U + '</strong>';
+    } else {
+      per.hidden = true;
+    }
+
+    /* الشريط السفلي للهاتف */
+    var mini = $('miniBar');
+    mini.dataset.state = tone;
+    $('miniValue').textContent = fmt(c.net);
+    $('miniIcon').innerHTML = ICONS[state];
+    hasInputFlag = c.hasInput;
+    syncMini();
+
+    /* المؤشرات */
+    if (c.margin === null) {
+      setTile('tMargin', 'tMarginSub', '—', 'tone-neutral', 'لا توجد مبيعات بعد');
+    } else {
+      setTile('tMargin', 'tMarginSub', N(c.margin.toFixed(1) + '%'),
+        c.margin > 0 ? 'tone-good' : (c.margin < 0 ? 'tone-bad' : 'tone-neutral'), 'من إجمالي المبيعات');
+    }
+
+    if (c.roas === null) {
+      setTile('tRoas', 'tRoasSub', '—', 'tone-neutral', 'لا يوجد إنفاق إعلاني');
+    } else if (c.beRoas === null) {
+      setTile('tRoas', 'tRoasSub', N(c.roas.toFixed(2) + '×'), 'tone-bad', 'هامش القطعة لا يغطي الشحن');
+    } else {
+      setTile('tRoas', 'tRoasSub', N(c.roas.toFixed(2) + '×'),
+        c.roas >= c.beRoas ? 'tone-good' : 'tone-bad',
+        'نقطة التعادل: ' + N(c.beRoas.toFixed(2) + '×'));
+    }
+
+    if (c.returnRate === null) {
+      setTile('tReturn', 'tReturnSub', '—', 'tone-neutral', 'من إجمالي الطلبات');
+    } else {
+      setTile('tReturn', 'tReturnSub', N(c.returnRate.toFixed(1) + '%'), 'tone-neutral',
+        c.returnsRaw > c.total ? 'الرواجع أكبر من الإجمالي' : (N(fmt(c.returns)) + ' من ' + N(fmt(c.total)) + ' طلب'));
+    }
+
+    if (c.cpa === null) {
+      setTile('tCpa', 'tCpaSub', '—', 'tone-ads', 'الإعلانات ÷ الطلبات المكتملة');
+    } else if (c.beCpa === null) {
+      setTile('tCpa', 'tCpaSub', N(fmt(c.cpa)) + ' <small>د.ع</small>', 'tone-ads', 'الإعلانات ÷ الطلبات المكتملة');
+    } else {
+      setTile('tCpa', 'tCpaSub', N(fmt(c.cpa)) + ' <small>د.ع</small>',
+        c.cpa <= c.beCpa ? 'tone-ads' : 'tone-bad', 'الإعلانات ÷ الطلبات المكتملة');
+    }
+
+    if (c.beCpa === null) {
+      setTile('tBeCpa', 'tBeCpaSub', '—', 'tone-neutral', 'أدخل أرقام البضاعة والطلبات أولاً');
+    } else if (c.beCpa <= 0) {
+      setTile('tBeCpa', 'tBeCpaSub', N(fmt(c.beCpa)) + ' <small>د.ع</small>', 'tone-bad',
+        'التكاليف الحالية وحدها تلتهم الربح، بلا أي مجال لصرف إعلاني');
+    } else {
+      setTile('tBeCpa', 'tBeCpaSub', N(fmt(c.beCpa)) + ' <small>د.ع</small>', 'tone-good',
+        'أعلى كلفة إعلان لكل طلب مكتمل قبل الخسارة');
+    }
+
+    /* جدول التفصيل */
+    var pct = function (v) { return c.revenue > 0 ? N((v / c.revenue * 100).toFixed(1) + '%') + ' من المبيعات' : ''; };
+    var val = function (v) { return N(fmt(v)) + U; };
+
+    $('rvVal').innerHTML = c.hasInput ? val(c.revenue) : '—';
+    $('rvPct').innerHTML = c.revenue > 0 ? N('100%') + ' من المبيعات' : '';
+    $('cgVal').innerHTML = c.hasInput ? val(c.cogs) : '—';
+    $('cgPct').innerHTML = pct(c.cogs);
+    $('adVal').innerHTML = c.hasInput ? val(c.adsIqd) : '—';
+    $('adPct').innerHTML = pct(c.adsIqd);
+    $('shVal').innerHTML = c.hasInput ? val(c.shipping) : '—';
+    $('shPct').innerHTML = pct(c.shipping);
+    $('shSub').innerHTML = c.hasInput
+      ? 'ناجحة ' + N(fmt(c.shipOk)) + ' + رواجع ' + N(fmt(c.shipRet))
+      : 'الطلبات المكتملة + خسائر الرواجع';
+
+    $('dmVal').innerHTML = c.hasInput ? val(c.damagedLoss) : '—';
+    $('dmPct').innerHTML = pct(c.damagedLoss);
+    $('dmSub').innerHTML = (c.hasInput && c.damagedPct > 0)
+      ? N(String(+c.damagedPct.toFixed(2)) + '%') + ' من ' + N(fmt(c.returns)) + ' طلب راجع'
+      : 'نسبة من قيمة البضاعة المرتجعة';
+
+    $('pkVal').innerHTML = c.hasInput ? val(c.packaging) : '—';
+    $('pkPct').innerHTML = pct(c.packaging);
+    $('pkSub').innerHTML = (c.hasInput && c.packagingCost > 0)
+      ? N(fmt(c.packagingCost)) + ' د.ع × ' + N(fmt(c.delivered)) + ' طلب مكتمل'
+      : 'كلفة الطلب × الطلبات المكتملة';
+
+    $('cmVal').innerHTML = c.hasInput ? val(c.commission) : '—';
+    $('cmPct').innerHTML = pct(c.commission);
+    if (c.commissionMode === 'percent') {
+      $('cmSub').innerHTML = c.commissionValue > 0
+        ? N(String(+c.commRate.toFixed(2)) + '%') + ' من سعر البيع'
+        : 'اختياري: نسبة من سعر البيع';
+    } else {
+      $('cmSub').innerHTML = c.commissionValue > 0
+        ? N(fmt(c.commissionValue)) + ' د.ع × ' + N(fmt(c.delivered)) + ' طلب مكتمل'
+        : 'اختياري: مبلغ ثابت لكل طلب';
+    }
+
+    var ntTone = state === 'profit' ? 'tone-good' : (state === 'loss' ? 'tone-bad' : 'tone-neutral');
+    var ntColor = state === 'profit' ? 'var(--profit)' : (state === 'loss' ? 'var(--loss)' : 'var(--ink)');
+    $('ntDot').style.setProperty('--c', ntColor);
+    $('ntVal').className = 'r-val ' + ntTone;
+    $('ntVal').innerHTML = c.hasInput ? val(c.net) : '—';
+    $('ntPct').innerHTML = pct(c.net);
+
+    /* الرسم البياني */
+    var items = [
+      { label: 'كلفة البضاعة', value: c.cogs, color: COLORS.cogs },
+      { label: 'الإعلانات', value: c.adsIqd, color: COLORS.ads },
+      { label: 'الشحن والتوصيل', value: c.shipping, color: COLORS.ship },
+      { label: 'خسائر التالف من الرواجع', value: c.damagedLoss, color: COLORS.damage },
+      { label: 'التغليف والطباعة', value: c.packaging, color: COLORS.pack },
+      { label: 'عمولة المنصة', value: c.commission, color: COLORS.comm }
+    ];
+    if (c.net > 0) {
+      items.push({ label: 'صافي الربح', value: c.net, color: COLORS.profit });
+      $('chartTitle').textContent = 'توزيع الإيرادات';
+      $('chartNote').textContent = 'كل جزء يمثل حصته من إجمالي المبيعات.';
+    } else {
+      $('chartTitle').textContent = 'توزيع التكاليف';
+      $('chartNote').textContent = c.hasInput && c.revenue > 0 && c.net < 0
+        ? 'لا يوجد ربح لعرضه لأن الإيرادات لا تغطي التكاليف، فالرسم يعرض توزيع التكاليف فقط.'
+        : 'كل جزء يمثل حصته من إجمالي التكاليف.';
+    }
+    updateChart(items);
+    renderPrintInputs(c);
+    clearTimeout(printImgTimer);
+    printImgTimer = setTimeout(refreshPrintImage, 700);
+  }
+
+  /* ---------- نمط العمولة ---------- */
+  function setCommissionMode(mode) {
+    commissionMode = (mode === 'fixed') ? 'fixed' : 'percent';
+    Array.prototype.forEach.call(document.querySelectorAll('.seg button'), function (b) {
+      b.setAttribute('aria-checked', b.getAttribute('data-mode') === commissionMode ? 'true' : 'false');
+    });
+    $('commUnit').textContent = commissionMode === 'percent' ? '%' : 'د.ع';
+    $('commission').setAttribute('inputmode', commissionMode === 'percent' ? 'decimal' : 'numeric');
+    $('commission').setAttribute('pattern', commissionMode === 'percent' ? '[0-9]*[.,]?[0-9]*' : '[0-9]*');
+    $('commHint').textContent = commissionMode === 'percent'
+      ? 'نسبة مئوية من سعر بيع كل طلب مكتمل، مثال: 5 أو 2.5'
+      : 'مبلغ ثابت بالدينار يُخصم عن كل طلب مكتمل.';
+  }
+
+  /* ---------- التقرير المطبوع ---------- */
+  function renderPrintInputs(c) {
+    var v = function (id) { return $(id).value || '0'; };
+    var commText = 'لا توجد';
+    if (c.commissionValue > 0) {
+      commText = c.commissionMode === 'percent'
+        ? N(String(+c.commRate.toFixed(2)) + '%') + ' من سعر البيع'
+        : N(v('commission')) + ' د.ع لكل طلب مكتمل';
+    }
+    var rows = [
+      ['صرف الإعلانات الممولة', N(v('adUsd')) + ' $'],
+      ['سعر صرف 100 دولار', N(v('rate')) + U],
+      ['كلفة شراء القطعة', N(v('unitCost')) + U],
+      ['سعر بيع القطعة', N(v('unitPrice')) + U],
+      ['متوسط عدد القطع في الطلب', N(String(+c.piecesPerOrder.toFixed(2))) + ' قطعة'],
+      ['إجمالي الطلبات المستلمة', N(v('totalOrders')) + ' طلب'],
+      ['الطلبات المكتملة', N(fmt(c.delivered)) + ' طلب'],
+      ['الطلبات المرجعة', N(fmt(c.returns)) + ' طلب'],
+      ['أجور توصيل الطلب المكتمل', N(v('deliveryFee')) + U],
+      ['أجور التوصيل عن كل طلب راجع', N(v('returnFee')) + U],
+      ['نسبة التالف/المفقود من الرواجع', c.damagedPct > 0 ? N(String(+c.damagedPct.toFixed(2)) + '%') : 'لا توجد'],
+      ['كلفة التغليف والطباعة للطلب', N(v('packaging')) + U],
+      ['عمولة المنصة / الوسيط', commText]
+    ];
+    $('printList').innerHTML = rows.map(function (r) {
+      return '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>';
+    }).join('');
+  }
+
+  /* صورة الرسم البياني للطباعة (حدود بيضاء)، تُجهَّز مسبقاً بعد كل تحديث حتى تكون جاهزة لحظة الضغط */
+  function refreshPrintImage() {
+    var img = $('printImg');
+    if (chart && !$('chartWrap').hidden) {
+      try {
+        chart.data.datasets[0].borderColor = '#ffffff';
+        chart.update('none');
+        var src = $('pie').toDataURL('image/png');
+        chart.data.datasets[0].borderColor = '#0a0f21';
+        chart.update('none');
+        if (src !== lastPrintSrc) { img.src = src; lastPrintSrc = src; }
+        img.classList.add('ready');
+        return;
+      } catch (e) { /* ignore */ }
+    }
+    img.classList.remove('ready');
+  }
+
+  function preparePrint() {
+    var d = new Date();
+    $('printDate').textContent = 'تاريخ التقرير: ' + fmtDate(d.getTime());
+    applyBrandDisplay();
+    document.title = 'تقرير-أرباح-المتجر-' + d.getFullYear() + '-' +
+      ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+    refreshPrintImage();
+  }
+
+  function restoreAfterPrint() {
+    document.title = ORIGINAL_TITLE;
+  }
+
+  /* ---------- التنبيهات ---------- */
+  var toastTimer = null;
+  function toast(msg, isErr) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.toggle('err', !!isErr);
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2400);
+  }
+
+  /* ---------- الحفظ والاسترجاع ---------- */
+  function fmtDate(ts) {
+    try {
+      return new Date(ts).toLocaleString('ar-IQ-u-nu-latn', { dateStyle: 'medium', timeStyle: 'short' });
+    } catch (e) {
+      return new Date(ts).toLocaleString();
+    }
+  }
+
+  function showSavedAt(ts) {
+    var el = $('savedAt');
+    if (!ts) { el.hidden = true; return; }
+    el.hidden = false;
+    el.textContent = 'آخر حفظ: ' + fmtDate(ts);
+  }
+
+  function persistData() {
+    var data = {};
+    FIELD_IDS.forEach(function (id) { data[id] = $(id).value; });
+    data.commissionMode = commissionMode;
+    data._t = Date.now();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    showSavedAt(data._t);
+  }
+
+  function save() {
+    try {
+      persistData();
+      toast('تم حفظ الحسابات في هذا المتصفح');
+    } catch (e) {
+      toast('تعذّر الحفظ. قد يكون التخزين معطلاً في المتصفح.', true);
+    }
+  }
+
+  function autoSave() {
+    try { persistData(); } catch (e) { /* صامت: الزر اليدوي سيُظهر الخطأ عند الحاجة */ }
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      var data = JSON.parse(raw);
+      if (data.commissionMode === 'fixed' || data.commissionMode === 'percent') setCommissionMode(data.commissionMode);
+      FIELD_IDS.forEach(function (id) {
+        if (typeof data[id] === 'string') {
+          $(id).value = formatNumberString(data[id], isDecimal(id), null).text;
+        }
+      });
+      showSavedAt(data._t);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function reset() {
+    setCommissionMode('percent');
+    FIELD_IDS.forEach(function (id) { $(id).value = DEFAULTS[id]; });
+    render();
+    toast('تم تصفير الحقول');
+  }
+
+  /* ---------- علامة المتجر (الاسم والشعار) ---------- */
+  var storeLogoDataUrl = '';
+  var brandSaveTimer = null;
+
+  function applyBrandDisplay() {
+    var name = $('storeName').value.trim();
+    var hasName = name.length > 0;
+    var hasLogo = !!storeLogoDataUrl;
+
+    $('storeBrandRow').hidden = !(hasName || hasLogo);
+    $('storeNameText').textContent = name;
+
+    var logoImg = $('storeLogoImg');
+    if (hasLogo) { logoImg.src = storeLogoDataUrl; logoImg.hidden = false; }
+    else { logoImg.hidden = true; logoImg.removeAttribute('src'); }
+
+    var printLogo = $('printLogoImg');
+    if (hasLogo) { printLogo.src = storeLogoDataUrl; printLogo.hidden = false; }
+    else { printLogo.hidden = true; printLogo.removeAttribute('src'); }
+
+    $('printStoreName').textContent = hasName ? ('تقرير أرباح — ' + name) : 'تقرير صافي أرباح المتجر';
+
+    var preview = $('logoPreview');
+    if (hasLogo) { preview.innerHTML = '<img src="' + storeLogoDataUrl + '" alt="شعار المتجر">'; }
+    else { preview.textContent = 'بلا شعار'; }
+    $('logoRemoveBtn').hidden = !hasLogo;
+  }
+
+  function saveBrand() {
+    try {
+      localStorage.setItem(BRAND_STORAGE_KEY, JSON.stringify({ name: $('storeName').value, logo: storeLogoDataUrl }));
+    } catch (e) { /* التخزين قد يكون ممتلئاً أو معطلاً، لا داعي لإزعاج المستخدم هنا */ }
+  }
+
+  function loadBrand() {
+    try {
+      var raw = localStorage.getItem(BRAND_STORAGE_KEY);
+      if (!raw) return;
+      var data = JSON.parse(raw);
+      if (typeof data.name === 'string') $('storeName').value = data.name;
+      if (typeof data.logo === 'string' && data.logo) storeLogoDataUrl = data.logo;
+    } catch (e) { /* تجاهل بيانات تالفة */ }
+  }
+
+  function resizeLogoFile(file, done) {
+    if (!file || !/^image\//.test(file.type)) { toast('اختر ملف صورة صالح (PNG أو JPG)', true); return; }
+    if (file.size > 5 * 1024 * 1024) { toast('حجم الصورة كبير جداً، اختر صورة أصغر من 5 ميجابايت', true); return; }
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var maxSide = 240;
+        var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+        var scale = Math.min(1, maxSide / Math.max(w, h));
+        var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+        var canvas = document.createElement('canvas');
+        canvas.width = cw; canvas.height = ch;
+        var ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, cw, ch);
+        ctx.drawImage(img, 0, 0, cw, ch);
+        try { done(canvas.toDataURL('image/png')); }
+        catch (e) { toast('تعذّر معالجة الصورة', true); }
+      };
+      img.onerror = function () { toast('تعذّر قراءة الصورة', true); };
+      img.src = reader.result;
+    };
+    reader.onerror = function () { toast('تعذّر قراءة الملف', true); };
+    reader.readAsDataURL(file);
+  }
+
+  /* ---------- مشاركة الملخص ---------- */
+  function buildShareText(c) {
+    var name = $('storeName').value.trim();
+    var lines = [];
+    lines.push(name ? ('📊 ملخص أرباح ' + name) : '📊 ملخص أرباح المتجر');
+    lines.push('');
+    lines.push('إجمالي المبيعات: ' + fmt(c.revenue) + ' د.ع');
+    lines.push('كلفة البضاعة: ' + fmt(c.cogs) + ' د.ع');
+    lines.push('الإعلانات: ' + fmt(c.adsIqd) + ' د.ع');
+    lines.push('الشحن والتوصيل: ' + fmt(c.shipping) + ' د.ع');
+    if (c.damagedLoss > 0) lines.push('خسائر التالف من الرواجع: ' + fmt(c.damagedLoss) + ' د.ع');
+    lines.push('التغليف والطباعة: ' + fmt(c.packaging) + ' د.ع');
+    if (c.commission > 0) lines.push('عمولة المنصة: ' + fmt(c.commission) + ' د.ع');
+    lines.push('');
+    lines.push((c.net >= 0 ? '✅ صافي الربح: ' : '🔻 صافي الخسارة: ') + fmt(Math.abs(c.net)) + ' د.ع');
+    if (c.margin !== null) lines.push('هامش الربح: ' + c.margin.toFixed(1) + '%');
+    if (c.roas !== null) lines.push('ROAS: ' + c.roas.toFixed(2) + '×');
+    if (c.cpa !== null) lines.push('كلفة الإعلان لكل طلب: ' + fmt(c.cpa) + ' د.ع');
+    if (c.beCpa !== null) lines.push('الحد الأقصى لكلفة الإعلان (تعادل): ' + fmt(c.beCpa) + ' د.ع');
+    return lines.join('\n');
+  }
+
+  function fallbackCopy(text) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      toast('تم نسخ الملخص إلى الحافظة');
+    } catch (e) {
+      toast('تعذّر نسخ الملخص', true);
+    }
+  }
+
+  function shareViaWhatsApp() {
+    var c = compute();
+    if (!c.hasInput) { toast('أدخل بعض الأرقام أولاً قبل المشاركة', true); return; }
+    window.open('https://wa.me/?text=' + encodeURIComponent(buildShareText(c)), '_blank', 'noopener');
+  }
+
+  function shareViaTelegram() {
+    var c = compute();
+    if (!c.hasInput) { toast('أدخل بعض الأرقام أولاً قبل المشاركة', true); return; }
+    window.open('https://t.me/share/url?url=&text=' + encodeURIComponent(buildShareText(c)), '_blank', 'noopener');
+  }
+
+  function copySummary() {
+    var c = compute();
+    if (!c.hasInput) { toast('أدخل بعض الأرقام أولاً قبل النسخ', true); return; }
+    var text = buildShareText(c);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        toast('تم نسخ الملخص إلى الحافظة');
+      }, function () { fallbackCopy(text); });
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  /* ---------- الربط ---------- */
+  FIELD_IDS.forEach(function (id) {
+    $(id).addEventListener('input', function (e) {
+      formatField(e.target);
+      render();
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = setTimeout(autoSave, 700);
+    });
+  });
+
+  $('saveBtn').addEventListener('click', save);
+
+  $('storeName').addEventListener('input', function () {
+    applyBrandDisplay();
+    clearTimeout(brandSaveTimer);
+    brandSaveTimer = setTimeout(saveBrand, 500);
+  });
+
+  $('storeLogo').addEventListener('change', function (e) {
+    var file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    resizeLogoFile(file, function (dataUrl) {
+      storeLogoDataUrl = dataUrl;
+      applyBrandDisplay();
+      saveBrand();
+      toast('تم إضافة شعار المتجر');
+    });
+  });
+
+  $('logoRemoveBtn').addEventListener('click', function () {
+    storeLogoDataUrl = '';
+    applyBrandDisplay();
+    saveBrand();
+    toast('تم إزالة الشعار');
+  });
+
+  $('shareWaBtn').addEventListener('click', shareViaWhatsApp);
+  $('shareTgBtn').addEventListener('click', shareViaTelegram);
+  $('shareCopyBtn').addEventListener('click', copySummary);
+
+  Array.prototype.forEach.call(document.querySelectorAll('.seg button'), function (b) {
+    b.addEventListener('click', function () {
+      var mode = b.getAttribute('data-mode');
+      if (mode === commissionMode) return;
+      $('commission').value = '';
+      setCommissionMode(mode);
+      render();
+    });
+  });
+
+  $('exportBtn').addEventListener('click', function () {
+    if (!compute().hasInput) {
+      toast('أدخل بعض الأرقام أولاً قبل تصدير التقرير', true);
+      return;
+    }
+    preparePrint();
+    window.print();
+    setTimeout(restoreAfterPrint, 800);
+  });
+  window.addEventListener('beforeprint', preparePrint);
+  window.addEventListener('afterprint', restoreAfterPrint);
+  $('resetBtn').addEventListener('click', reset);
+  $('miniBar').addEventListener('click', function () {
+    $('netCard').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+  });
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      netVisible = entries[0].isIntersecting;
+      syncMini();
+    }, { threshold: 0.35 }).observe($('netCard'));
+  }
+
+  /* ---------- تشغيل ---------- */
+  FIELD_IDS.forEach(function (id) { $(id).value = DEFAULTS[id]; });
+  setCommissionMode('percent');
+  load();
+  loadBrand();
+  applyBrandDisplay();
+  render();
+})();
+</script>
+</body>
+</html>
