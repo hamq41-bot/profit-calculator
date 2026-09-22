@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حاسبة أرباح التجارة الإلكترونية الشاملة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background-color: #0b1329; color: #f8fafc; }
+        .card { background-color: #111c38; border: 1px solid #1e293b; }
+        .input-box { background-color: #0b1329; border: 1px solid #1e293b; color: #f8fafc; }
+        .input-box:focus { border-color: #3b82f6; outline: none; }
+    </style>
+</head>
+<body class="pb-24 pt-4 px-3 md:px-8">
+    <main class="max-w-3xl mx-auto space-y-6">
+
+        <!-- معلومات المتجر -->
+        <div class="card p-5 rounded-2xl space-y-4">
+            <h2 class="text-md font-bold text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-store text-blue-400"></i> معلومات المتجر
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">اسم المتجر</label>
+                    <input type="text" id="storeName" placeholder="مثال: متجر السعادة" class="input-box w-full p-3 rounded-xl text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">شعار المتجر (اللوغو)</label>
+                    <input type="file" id="storeLogo" accept="image/*" class="input-box w-full p-2.5 rounded-xl text-xs text-slate-400">
+                </div>
+            </div>
+        </div>
+
+        <!-- الإعلانات الممولة -->
+        <div class="card p-5 rounded-2xl space-y-4">
+            <h2 class="text-md font-bold text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-rectangle-ad text-blue-400"></i> الإعلانات الممولة
+            </h2>
+            <div class="space-y-4 text-sm">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">صرف الإعلانات الممولة ($)</label>
+                    <input type="number" id="adBudgetUSD" value="100" oninput="calculate()" class="input-box w-full p-3 rounded-xl font-bold text-white">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">سعر صرف 100 دولار بالدينار العراقي</label>
+                    <input type="number" id="exchangeRate" value="153000" oninput="calculate()" class="input-box w-full p-3 rounded-xl font-bold text-blue-400">
+                </div>
+                <div class="p-3 bg-slate-900/60 rounded-xl text-xs flex justify-between items-center text-slate-300">
+                    <span>كلفة الإعلانات بالدينار:</span>
+                    <span id="adCostIQDDisplay" class="font-bold text-blue-400">153,000 د.ع</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- المنافسة والأسعار -->
+        <div class="card p-5 rounded-2xl space-y-4">
+            <h2 class="text-md font-bold text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-tags text-blue-400"></i> المنافسة والأسعار
+            </h2>
+            <div class="space-y-4 text-sm">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">كلفة شراء القطعة الواحدة ($)</label>
+                    <input type="number" id="itemCostUSD" value="5" step="0.1" oninput="calculate()" class="input-box w-full p-3 rounded-xl text-white font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">سعر بيع القطعة للزبون (د.ع)</label>
+                    <input type="number" id="sellingPriceIQD" value="9000" oninput="calculate()" class="input-box w-full p-3 rounded-xl text-emerald-400 font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">متوسط عدد القطع في الطلب الواحد</label>
+                    <input type="number" id="itemsPerOrder" value="1" oninput="calculate()" class="input-box w-full p-3 rounded-xl text-white font-bold">
+                </div>
+            </div>
+        </div>
+
+        <!-- التغليف والعمولة -->
+        <div class="card p-5 rounded-2xl space-y-4">
+            <h2 class="text-md font-bold text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-box-open text-blue-400"></i> التغليف والعمولة
+            </h2>
+            <div class="space-y-4 text-sm">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">كلفة التغليف والطباعة للطلب الواحد (د.ع)</label>
+                    <input type="number" id="packagingCostIQD" value="1000" oninput="calculate()" class="input-box w-full p-3 rounded-xl text-white font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">عمولة المنصة / الوسيط (اختياري)</label>
+                    <input type="number" id="platformCommission" value="0" oninput="calculate()" class="input-box w-full p-3 rounded-xl text-white font-bold" placeholder="0">
+                </div>
+            </div>
+        </div>
+
+        <!-- الطلبات والتوصيل -->
+        <div class="card p-5 rounded-2xl space-y-4">
+            <h2 class="text-md font-bold text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-truck-fast text-blue-400"></i> الطلبات والتوصيل
+            </h2>
+            <div class="space-y-4 text-sm">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">إجمالي الطلبات المستلمة</label>
+                    <input type="number" id="totalOrders" value="18" oninput="calculate()" class="input-box w-full p-3 rounded-xl text-white font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">أجور توصيل الطلب الناجح (د.ع)</label>
+                    <input type="number" id="successShippingIQD" value="5000" oninput="calculate()" class="input-box w-full p-3 rounded-xl text-white font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">عدد الطلبات المرتجعة (الراجع)</label>
+                    <input type="number" id="returnedOrders" value="8" oninput="calculate()" class="input-box w-full p-3 rounded-xl text-rose-400 font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">أجور شحن الطلب المرتجع (د.ع)</label>
+                    <input type="number" id="returnShippingIQD" value="2500" oninput="calculate()" class="input-box w-full p-3 rounded-xl text-rose-400 font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">نسبة التالف/المفقود من الراجع (%)</label>
+                    <input type="number" id="damagedReturnRate" value="0" oninput="calculate()" class="input-box w-full p-3 rounded-xl text-rose-400 font-bold">
+                </div>
+            </div>
+        </div>
+
+        <!-- بطاقة النتيجة الرئيسية -->
+        <div id="profitCard" class="card p-6 rounded-2xl border-2 text-center space-y-3">
+            <span id="profitStatusBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">الخسارة</span>
+            <div class="text-xs text-slate-400">صافي الربح الفعلي</div>
+            <div id="netProfitDisplay" class="text-3xl font-black text-rose-500">-209,000 <span class="text-sm font-normal">د.ع</span></div>
+        </div>
+
+        <!-- مؤشرات التحليل -->
+        <div class="grid grid-cols-2 gap-3 text-center">
+            <div class="card p-4 rounded-2xl">
+                <div class="text-xs text-slate-400 mb-1">نسبة صافي الربح</div>
+                <div id="marginDisplay" class="text-lg font-black text-rose-400">-129%</div>
+            </div>
+            <div class="card p-4 rounded-2xl">
+                <div class="text-xs text-slate-400 mb-1">العائد على الإعلانات (ROAS)</div>
+                <div id="roasDisplay" class="text-lg font-black text-blue-400">1.06x</div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        function calculate() {
+            const adBudgetUSD = parseFloat(document.getElementById('adBudgetUSD').value) || 0;
+            const exchangeRate = parseFloat(document.getElementById('exchangeRate').value) || 0;
+            const itemCostUSD = parseFloat(document.getElementById('itemCostUSD').value) || 0;
+            const sellingPriceIQD = parseFloat(document.getElementById('sellingPriceIQD').value) || 0;
+            const itemsPerOrder = parseFloat(document.getElementById('itemsPerOrder').value) || 1;
+            const packagingCostIQD = parseFloat(document.getElementById('packagingCostIQD').value) || 0;
+            const platformCommission = parseFloat(document.getElementById('platformCommission').value) || 0;
+            const totalOrders = parseFloat(document.getElementById('totalOrders').value) || 0;
+            const successShippingIQD = parseFloat(document.getElementById('successShippingIQD').value) || 0;
+            const returnedOrders = parseFloat(document.getElementById('returnedOrders').value) || 0;
+            const returnShippingIQD = parseFloat(document.getElementById('returnShippingIQD').value) || 0;
+            const damagedReturnRate = parseFloat(document.getElementById('damagedReturnRate').value) || 0;
+
+            const successfulOrders = Math.max(0, totalOrders - returnedOrders);
+            const adCostIQD = (adBudgetUSD * exchangeRate) / 100;
+            const itemCostIQD = (itemCostUSD * exchangeRate) / 100;
+
+            const grossRevenue = successfulOrders * sellingPriceIQD * itemsPerOrder;
+            const totalCOGS = totalOrders * itemCostIQD * itemsPerOrder;
+            const totalShipping = (successfulOrders * successShippingIQD) + (returnedOrders * returnShippingIQD);
+            const totalPackaging = totalOrders * packagingCostIQD;
+            const damagedLoss = (returnedOrders * itemCostIQD * itemsPerOrder) * (damagedReturnRate / 100);
+            
+            const totalExpenses = totalCOGS + adCostIQD + totalShipping + totalPackaging + damagedLoss + platformCommission;
+            const netProfit = grossRevenue - totalExpenses;
+
+            const margin = grossRevenue > 0 ? ((netProfit / grossRevenue) * 100).toFixed(0) : 0;
+            const roas = adCostIQD > 0 ? (grossRevenue / adCostIQD).toFixed(2) : 0;
+
+            document.getElementById('adCostIQDDisplay').innerText = adCostIQD.toLocaleString('ar-IQ') + ' د.ع';
+            const formattedNetProfit = netProfit.toLocaleString('ar-IQ') + ' د.ع';
+            document.getElementById('netProfitDisplay').innerText = formattedNetProfit;
+            document.getElementById('marginDisplay').innerText = margin + '%';
+            document.getElementById('roasDisplay').innerText = roas + 'x';
+
+            const card = document.getElementById('profitCard');
+            const badge = document.getElementById('profitStatusBadge');
+            const netText = document.getElementById('netProfitDisplay');
+
+            if (netProfit >= 0) {
+                card.className = "card p-6 rounded-2xl border-2 border-emerald-500/50 text-center space-y-3";
+                badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                badge.innerText = "الربح الصافي";
+                netText.className = "text-3xl font-black text-emerald-400";
+            } else {
+                card.className = "card p-6 rounded-2xl border-2 border-rose-500/50 text-center space-y-3";
+                badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30";
+                badge.innerText = "الخسارة";
+                netText.className = "text-3xl font-black text-rose-500";
+            }
+        }
+        window.onload = calculate;
+    </script>
+</body>
+</html>
